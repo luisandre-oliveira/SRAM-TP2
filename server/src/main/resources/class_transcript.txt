@@ -1,0 +1,22 @@
+
+Alright everyone, let’s begin. Today, we’re diving into the fundamentals of quantum physics. I want to start with a brief overview of classical mechanics, which many of you are already familiar with, just to contrast it with what we’ll see in quantum theory.
+
+Classical mechanics describes the motion of macroscopic objects—everything from apples falling from trees to the orbits of planets. It's deterministic, meaning if we know the initial conditions of a system, we can predict its future behavior with complete accuracy. This is not the case in quantum physics.
+
+In the quantum realm, we deal with particles at the atomic and subatomic scale. The behavior of these particles is inherently probabilistic. That means we can’t predict exactly where a particle will be, only the likelihood of its position or momentum. This uncertainty is captured by Heisenberg’s Uncertainty Principle.
+
+Let’s talk about wave-particle duality. This is the concept that particles like electrons and photons exhibit both particle-like and wave-like properties. A key experiment here is the double-slit experiment. When particles pass through two slits, they produce an interference pattern, suggesting wave-like behavior. But if we observe which slit they go through, the interference pattern disappears, and we see particle-like behavior. This tells us that the act of observation fundamentally changes the outcome.
+
+Now, moving on to the concept of the wavefunction, which is a mathematical function used to describe the quantum state of a particle or system. The square of the wavefunction gives the probability density—that is, the likelihood of finding a particle in a particular location.
+
+Schrödinger’s Equation governs how the wavefunction evolves over time. It's a fundamental equation in quantum mechanics. For a particle in a potential, like an electron in an atom, solving this equation gives us discrete energy levels. This quantization of energy is a hallmark of quantum theory.
+
+Quantum superposition is another key principle. It states that a quantum system can exist in multiple states at once until it is measured. This is famously illustrated by Schrödinger’s cat thought experiment, where a cat in a box is simultaneously alive and dead until the box is opened and observed.
+
+Let’s also touch on quantum entanglement. This is when two or more particles become linked so that the state of one immediately influences the state of the other, no matter how far apart they are. Einstein called this “spooky action at a distance,” and it’s one of the strangest aspects of quantum theory. Experiments have confirmed that entangled particles do indeed exhibit correlations that can't be explained by classical physics.
+
+Quantum tunneling is another phenomenon where particles pass through a barrier that they seemingly shouldn't be able to, according to classical mechanics. This principle is fundamental in processes like nuclear fusion in stars and in modern electronics like tunnel diodes.
+
+As we wrap up, remember that quantum physics is not just theoretical. It has practical applications in technologies like semiconductors, lasers, MRI machines, and quantum computing. Speaking of quantum computing, we’ll explore that in our next lecture—how quantum bits or qubits can exist in superpositions and be entangled, offering potentially exponential increases in computing power for specific tasks.
+
+Okay, that’s all for today. Make sure to review Schrödinger’s Equation and the concept of superposition. Next time, we’ll delve into quantum algorithms and start with the basics of quantum gates.
