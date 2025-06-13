@@ -3,11 +3,11 @@ package uminho;
 import java.io.Serializable;
 
 public class PDU implements Serializable {
-    private int F;
+    private final double F;
     private final int A;
     private final String Message;
 
-    public PDU(int F, int A, String Message) {
+    public PDU(double F, int A, String Message) {
         this.F = F;
         this.A = A;
         this.Message = Message;
@@ -19,7 +19,7 @@ public class PDU implements Serializable {
         this.Message = null;
     }
 
-    public int getF() {
+    public double getF() {
         return F;
     }
 

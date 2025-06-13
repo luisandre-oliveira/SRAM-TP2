@@ -63,13 +63,6 @@ public class ClientMain {
 
                 clientSocket.close();
 
-                /*while(true) {
-                    byte[] bufferResponse = new byte[2048 * 15];
-                    DatagramPacket response = new DatagramPacket(bufferResponse, bufferResponse.length);
-                    clientSocket.receive(response);
-                    System.out.println("Resposta recebida");
-                }*/
-
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -88,8 +81,7 @@ public class ClientMain {
                 properties.load( input );
                 loaded = true;
             } catch ( IOException e ) {
-                System.err.println( "Error loading config file: " + file.getAbsolutePath() );
-                e.printStackTrace();
+                System.err.println( "Error loading config file: " + file.getAbsolutePath() + e.getMessage() );
             }
         }
 
@@ -101,8 +93,7 @@ public class ClientMain {
                 }
                 properties.load( input );
             } catch ( IOException e ) {
-                System.err.println( "Error loading embedded config file: " + NAME_PROPERTIES_FILE );
-                e.printStackTrace();
+                System.err.println( "Error loading embedded config file: " + NAME_PROPERTIES_FILE + e.getMessage() );
                 System.exit( 1 );
             }
         }
@@ -114,7 +105,7 @@ public class ClientMain {
     private static void processProperties( Properties properties) {
         try {
             PORT = Integer.parseInt( properties.getProperty( "PORT") );
-            FORWARDER_PORT = Integer.parseInt( properties.getProperty( "FORWARDERPORT") );
+            FORWARDER_PORT = Integer.parseInt( properties.getProperty( "FORWARDERPORT" ) );
             HOSTNAME = String.copyValueOf(properties.getProperty( "HOSTNAME" ).toCharArray());
 
             String sb = "Loaded values:" + "\n"
@@ -124,8 +115,7 @@ public class ClientMain {
 
             System.out.println( sb );
         } catch ( Exception e ) {
-            System.err.println( "\nError getting data from config file.\n" );
-            e.printStackTrace();
+            System.err.println( "\nError getting data from config file.\n"  + e.getMessage());
             System.exit( 1 );
         }
     }

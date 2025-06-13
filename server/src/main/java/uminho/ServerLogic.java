@@ -5,19 +5,18 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.Objects;
 
 public class ServerLogic {
     private DatagramSocket serverSocket;
     private int COUNTER;
 
-    public ServerLogic(int F, int A, int PORT) {
+    public ServerLogic(double F, int A, int PORT) {
         try {
             serverSocket = new DatagramSocket(PORT);
             System.out.println("\nServer started on port " + PORT);
             System.out.println("Waiting for connections...\n");
 
-            while(true) {
+            while(!serverSocket.isClosed()) {
                 try {
                     byte[] receivedBuffer = new byte[256];
 
@@ -38,14 +37,11 @@ public class ServerLogic {
                     if( message.equals( "123456789" )) {
                         System.out.println("Verified Client Connected from: " + clientAddress + ":" + clientPort + "\n");
 
-                        // TODO: ADD THE READING LOGIC
-                        // TODO: * ADD THE SENDING OF SAID DATA
-
                         // Respond to forwarder
                         InetAddress forwarderAddress = requestPacket.getAddress();
                         int forwarderPort = requestPacket.getPort();
 
-                        String[] contentsFile = readFile( "class_transcript.txt" );
+                        String[] contentsFile = readFile();
                         COUNTER = 0;
 
                         while( COUNTER < contentsFile.length  ) {
@@ -59,6 +55,7 @@ public class ServerLogic {
                         sendMessage(null, forwarderAddress, forwarderPort);
                         System.out.println( "\nEND OF FILE MESSAGE SENT" );
 
+                        serverSocket.close();
                     }
 
                 } catch (InterruptedException | IOException e) {
@@ -77,22 +74,17 @@ public class ServerLogic {
         oos.flush();
         byte[] sendBuffer = baos.toByteArray();
 
-        //byte[] sendBuffer;
-
-
-        //sendBuffer = pdu.toString().getBytes();
-
         DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, forwarderAddress, forwarderPort);
         serverSocket.send(sendPacket);
     }
 
-    private static String[] readFile(String filePath) {
+    private static String[] readFile() {
         String[] sentences = null;
 
         try {
             StringBuilder contentBuilder = new StringBuilder();
 
-            InputStream inputStream = ServerLogic.class.getClassLoader().getResourceAsStream(filePath);
+            InputStream inputStream = ServerLogic.class.getClassLoader().getResourceAsStream("class_transcript.txt");
 
             assert inputStream != null;
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -105,18 +97,6 @@ public class ServerLogic {
 
             String content = contentBuilder.toString();
             sentences = content.split( "(?<=\\.)\\s+" );
-
-            /*long delay = 1000L / fa;  // Milliseconds between sentences
-            int counter = 0;
-
-            for (String sentence : sentences) {
-                sentence = sentence.trim();
-                if (!sentence.isEmpty()) {
-                    System.out.println(sentence);
-                    counter++;
-                    Thread.sleep(delay);
-                }
-            }*/
 
         } catch (IOException e) {
             System.err.println("Error reading main file: " + e.getMessage());
