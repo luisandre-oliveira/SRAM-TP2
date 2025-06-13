@@ -8,9 +8,10 @@ import java.net.SocketException;
 
 public class ServerLogic {
     private DatagramSocket serverSocket;
-    private int COUNTER;
 
     public ServerLogic(double F, int A, int PORT) {
+        int COUNTER;
+
         try {
             serverSocket = new DatagramSocket(PORT);
             System.out.println("\nServer started on port " + PORT);
@@ -30,7 +31,7 @@ public class ServerLogic {
                     InetAddress clientAddress = requestPacket.getAddress();
                     int clientPort = requestPacket.getPort();
 
-                    double fa = Math.pow( 10, -F );
+                    double fa = Math.pow( 10, -F / 10); //TODO: REMOVE THE /10 PART -> TESTING ONLY
                     long sleep = Math.round(1000 / fa);
 
                     // CODE VERIFICATION

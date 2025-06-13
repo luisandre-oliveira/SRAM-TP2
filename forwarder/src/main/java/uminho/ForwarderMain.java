@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.Properties;
 
 public class ForwarderMain {
@@ -18,17 +17,19 @@ public class ForwarderMain {
     private static int CLIENT_PORT;
     private static String HOSTNAME;
 
-    private static final int N = 10; // Number of frames before pausing
-    private static final int P = 2;  // Pause duration in seconds
-    private static final int M = 30; // Interval in seconds to drop a frame
+    private static int N; // Number of frames before pausing
+    private static int P;  // Pause duration in seconds
+    private static int M; // Interval in seconds to drop a frame
 
     public ForwarderMain() {
         forwarderLogic();
     }
 
     private void forwarderLogic() {
-        try {
-            DatagramSocket forwarderSocket = new DatagramSocket(FORWARDER_PORT);
+
+        int COUNTER = 0;
+
+        try ( DatagramSocket forwarderSocket = new DatagramSocket(FORWARDER_PORT) ) {
             byte[] receivedBuffer = new byte[1024];
 
             System.out.println("Forwarder is running...");
@@ -38,34 +39,35 @@ public class ForwarderMain {
                 DatagramPacket receivedPacket = new DatagramPacket(receivedBuffer, receivedBuffer.length);
                 forwarderSocket.receive(receivedPacket);
 
-                //System.out.println("BRUH" + Arrays.toString(receivedPacket.getData()));
-
                 String msg = new String(receivedPacket.getData(), 0, receivedPacket.getLength());
                 InetAddress senderAddress = receivedPacket.getAddress();
                 int senderPort = receivedPacket.getPort();
 
                 if (senderPort == 12345) {
                     // Message from client → forward to server
-                    System.out.println("Forwarder got message from client: " + msg);
+                    System.out.println("CLIENT -> SERVER: " + msg.length() + " bytes");
 
-                    DatagramPacket forwardPacket = new DatagramPacket(
-                            receivedPacket.getData(), receivedPacket.getLength(), senderAddress, 9876);
+                    DatagramPacket forwardPacket = new DatagramPacket( receivedPacket.getData(), receivedPacket.getLength(), senderAddress, 9876 );
                     forwarderSocket.send(forwardPacket);
 
-                    System.out.println("Forwarder sent to server.");
                 } else if (senderPort == 9876) {
                     // Message from server → forward to client
-                    System.out.println("Forwarder got response from server: " + msg);
+                    System.out.println("SERVER -> CLIENT: " + msg.length() + " bytes");
 
-                    DatagramPacket returnPacket = new DatagramPacket(
-                            receivedPacket.getData(), receivedPacket.getLength(), senderAddress, 12345);
+                    if( COUNTER == N ) {
+                        System.out.println("SLEEPING");
+                        COUNTER = 0;
+                        Thread.sleep(1000L * P);
+                    } else {
+                        COUNTER++;
+                    }
+
+                    DatagramPacket returnPacket = new DatagramPacket( receivedPacket.getData(), receivedPacket.getLength(), senderAddress, 12345 );
                     forwarderSocket.send(returnPacket);
-
-                    System.out.println("Forwarder sent response to client.");
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println( "\n " + e.getMessage() );
         }
     }
 
@@ -91,8 +93,7 @@ public class ForwarderMain {
                 properties.load( input );
                 loaded = true;
             } catch ( IOException e ) {
-                System.err.println( "Error loading config file: " + file.getAbsolutePath() );
-                e.printStackTrace();
+                System.err.println( "Error loading config file: " + file.getAbsolutePath()  + e.getMessage() );
             }
         }
 
@@ -104,8 +105,7 @@ public class ForwarderMain {
                 }
                 properties.load( input );
             } catch ( IOException e ) {
-                System.err.println( "Error loading embedded config file: " + NAME_PROPERTIES_FILE );
-                e.printStackTrace();
+                System.err.println( "Error loading embedded config file: " + NAME_PROPERTIES_FILE + e.getMessage());
                 System.exit( 1 );
             }
         }
@@ -120,17 +120,22 @@ public class ForwarderMain {
             FORWARDER_PORT = Integer.parseInt( properties.getProperty( "FORWARDERPORT") );
             CLIENT_PORT = Integer.parseInt( properties.getProperty( "CLIENTPORT") );
             HOSTNAME = String.copyValueOf(properties.getProperty( "HOSTNAME").toCharArray());
+            N = Integer.parseInt( properties.getProperty( "N") );
+            P = Integer.parseInt( properties.getProperty( "P") );
+            M = Integer.parseInt( properties.getProperty( "M") );
 
             String sb = "Loaded values:" + "\n"
                     + "\tSERVER_PORT - " + SERVER_PORT + "\n"
                     + "\tFORWARDER_PORT - " + FORWARDER_PORT + "\n"
                     + "\tCLIENT_PORT - " + CLIENT_PORT + "\n"
-                    + "\tHOSTNAME - " + HOSTNAME + "\n";
+                    + "\tHOSTNAME - " + HOSTNAME + "\n"
+                    + "\tN - " + N + "\n"
+                    + "\tP - " + P + "\n"
+                    + "\tM - " + M + "\n";
 
             System.out.println( sb );
         } catch ( Exception e ) {
-            System.err.println( "\nError getting data from config file.\n" );
-            e.printStackTrace();
+            System.err.println( "\nError getting data from config file.\n"  + e.getMessage() );
             System.exit( 1 );
         }
     }
