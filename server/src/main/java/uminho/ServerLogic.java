@@ -5,16 +5,19 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class ServerLogic {
     private DatagramSocket serverSocket;
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public ServerLogic(double F, int A, int PORT) {
         int COUNTER;
 
         try {
             serverSocket = new DatagramSocket(PORT);
-            System.out.println("\nServer started on port " + PORT);
+            System.out.println("Server started on port " + PORT);
             System.out.println("Waiting for connections...\n");
 
             while(!serverSocket.isClosed()) {
@@ -31,16 +34,20 @@ public class ServerLogic {
                     InetAddress clientAddress = requestPacket.getAddress();
                     int clientPort = requestPacket.getPort();
 
-                    double fa = Math.pow( 10, -F / 10); //TODO: REMOVE THE /10 PART -> TESTING ONLY
+                    double fa = Math.pow( 10, -F );
                     long sleep = Math.round(1000 / fa);
 
                     // CODE VERIFICATION
                     if( message.equals( "123456789" )) {
-                        System.out.println("Verified Client Connected from: " + clientAddress + ":" + clientPort + "\n");
+                        System.out.println("Verified Client Connected from: " + clientAddress + ":" + clientPort);
 
                         // Respond to forwarder
                         InetAddress forwarderAddress = requestPacket.getAddress();
                         int forwarderPort = requestPacket.getPort();
+
+                        PDU ack_pdu = new PDU( F, A, null);
+                        sendMessage( ack_pdu, forwarderAddress, forwarderPort );
+                        System.out.println("\n" + LocalTime.now().format(formatter) + " : ACK message sent. \n");
 
                         String[] contentsFile = readFile();
                         COUNTER = 0;
@@ -48,13 +55,13 @@ public class ServerLogic {
                         while( COUNTER < contentsFile.length  ) {
                             PDU pdu = new PDU( F, A, contentsFile[COUNTER].trim() );
                             sendMessage(pdu, forwarderAddress, forwarderPort);
-                            System.out.println( "MESSAGE -> " + pdu.getMessage() );
+                            System.out.println(LocalTime.now().format(formatter) + " : MESSAGE -> " + pdu.getMessage() );
                             COUNTER++;
                             Thread.sleep( sleep );
                         }
 
                         sendMessage(null, forwarderAddress, forwarderPort);
-                        System.out.println( "\nEND OF FILE MESSAGE SENT" );
+                        System.out.println( "\n" + LocalTime.now().format(formatter) + " : END OF FILE MESSAGE SENT" );
 
                         serverSocket.close();
                     }

@@ -57,8 +57,8 @@ public class ServerMain {
             PORT = Integer.parseInt( properties.getProperty( "PORT") );
 
             String sb = "Loaded values:" + "\n"
-                    + "\tF - " + F + "\n"
-                    + "\tA - " + A + "\n"
+                    + "\tF - " + F + " frames/second \n"
+                    + "\tA - " + A + " seconds \n"
                     + "\tPORT - " + PORT + "\n";
 
             System.out.println( sb );

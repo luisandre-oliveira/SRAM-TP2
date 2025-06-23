@@ -4,6 +4,10 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class ClientMain {
@@ -12,6 +16,11 @@ public class ClientMain {
     private static int PORT;
     private static int FORWARDER_PORT;
     private static String HOSTNAME;
+
+    private static List<DatagramPacket> BUFFER;
+    private static int MAX_SIZE_BUFFER;
+
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public ClientMain() {
         clientLogic();
@@ -39,27 +48,55 @@ public class ClientMain {
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, InetAddress.getByName(HOSTNAME), FORWARDER_PORT);
                 clientSocket.send(sendPacket);
 
-                System.out.println("Client sent the code: " + message);
+                System.out.println(LocalTime.now().format(formatter) + " : Client sent the code: " + message + "\n");
 
                 byte[] receivedData = new byte[1024];
                 DatagramPacket receivedPacket = new DatagramPacket(receivedData, receivedData.length);
 
+                boolean exit_loop = false;
+                ObjectInputStream in;
+
+                // ACK to get the F and A parameters from the server
+                DatagramPacket ackPacket = new DatagramPacket(receivedData, receivedData.length);
+                clientSocket.receive(ackPacket);
+                in = new ObjectInputStream(new ByteArrayInputStream(ackPacket.getData()));
+                PDU ack_pdu = (PDU) in.readObject();
+                in.close();
+
+                MAX_SIZE_BUFFER = (int) ( (1 / ( Math.pow( 10,-ack_pdu.getF() ) ) ) * ack_pdu.getA());
+                long sleep = Math.round( 1000 / ( Math.pow( 10,-ack_pdu.getF() ) ) );
+                // System.out.println(MAX_SIZE_BUFFER);
+
+                BUFFER = new ArrayList<>();
+
+                // start of the main logic of the client
                 do {
                     clientSocket.receive(receivedPacket);
 
-                    ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(receivedPacket.getData()));
+                    if( BUFFER.size() < MAX_SIZE_BUFFER ) {
+                        BUFFER.add(receivedPacket);
+                    } else {
+                        BUFFER.remove(0);
+                        BUFFER.add(receivedPacket);
+                    }
+
+                    in = new ObjectInputStream(new ByteArrayInputStream(receivedPacket.getData()));
                     PDU pdu = (PDU) in.readObject();
+
                     in.close();
 
                     if( pdu != null ) {
-                        System.out.println("MESSAGE -> " + pdu.getMessage());
+                        System.out.println(LocalTime.now().format(formatter) + " : MESSAGE -> " + pdu.getMessage());
+                        // System.out.println("BUFFER SIZE USED = " + BUFFER.size());
+                        Thread.sleep( sleep ); // sleep to guarantee fa frames/second
                     } else {
-                        System.out.println("\nEND OF TRANSMISSION");
+                        System.out.println("\n" + LocalTime.now().format(formatter) + " : END OF TRANSMISSION");
+                        exit_loop = true;
                     }
 
-                } while ( receivedPacket.getData() != null );
+                    BUFFER.remove(receivedPacket);
 
-                // TODO: maybe do an app that prints the transcript as it's being read
+                } while ( !exit_loop );
 
                 clientSocket.close();
 

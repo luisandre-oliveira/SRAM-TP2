@@ -7,6 +7,11 @@ import java.io.InputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
 public class ForwarderMain {
@@ -21,6 +26,8 @@ public class ForwarderMain {
     private static int P;  // Pause duration in seconds
     private static int M; // Interval in seconds to drop a frame
 
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     public ForwarderMain() {
         forwarderLogic();
     }
@@ -34,6 +41,8 @@ public class ForwarderMain {
 
             System.out.println("Forwarder is running...");
 
+            LocalTime startTime = LocalTime.now();
+
             while (true) {
                 // Receive from client
                 DatagramPacket receivedPacket = new DatagramPacket(receivedBuffer, receivedBuffer.length);
@@ -45,17 +54,27 @@ public class ForwarderMain {
 
                 if (senderPort == 12345) {
                     // Message from client → forward to server
-                    System.out.println("CLIENT -> SERVER: " + msg.length() + " bytes");
+                    System.out.println( LocalTime.now().format(formatter) + " : CLIENT -> SERVER = " + msg.length() + " bytes");
 
                     DatagramPacket forwardPacket = new DatagramPacket( receivedPacket.getData(), receivedPacket.getLength(), senderAddress, 9876 );
                     forwarderSocket.send(forwardPacket);
 
                 } else if (senderPort == 9876) {
+
+                    LocalTime currentTime = LocalTime.now();
+                    Duration timeDiff = Duration.between(startTime, currentTime);
+
+                    if( (int) timeDiff.getSeconds() > M ) {
+                        startTime = currentTime;
+                        System.out.println(LocalTime.now().format(formatter) + " : PACKET DROPPED");
+                        continue;
+                    }
+
                     // Message from server → forward to client
-                    System.out.println("SERVER -> CLIENT: " + msg.length() + " bytes");
+                    System.out.println(LocalTime.now().format(formatter) + " : SERVER -> CLIENT = " + msg.length() + " bytes");
 
                     if( COUNTER == N ) {
-                        System.out.println("SLEEPING");
+                        System.out.println(LocalTime.now().format(formatter) + " : FORWARDER ON PAUSE");
                         COUNTER = 0;
                         Thread.sleep(1000L * P);
                     } else {
@@ -64,6 +83,7 @@ public class ForwarderMain {
 
                     DatagramPacket returnPacket = new DatagramPacket( receivedPacket.getData(), receivedPacket.getLength(), senderAddress, 12345 );
                     forwarderSocket.send(returnPacket);
+
                 }
             }
         } catch (Exception e) {
