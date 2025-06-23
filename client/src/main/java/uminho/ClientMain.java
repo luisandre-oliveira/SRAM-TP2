@@ -64,7 +64,7 @@ public class ClientMain {
                 in.close();
 
                 MAX_SIZE_BUFFER = (int) ( (1 / ( Math.pow( 10,-ack_pdu.getF() ) ) ) * ack_pdu.getA());
-                long sleep = Math.round( 1000 / ( Math.pow( 10,-ack_pdu.getF() ) ) );
+                long sleep = Math.round( 1000 / ( Math.pow( 10,-ack_pdu.getF() /10 ) ) ); // TODO CLEAN /10
                 // System.out.println(MAX_SIZE_BUFFER);
 
                 BUFFER = new ArrayList<>();
